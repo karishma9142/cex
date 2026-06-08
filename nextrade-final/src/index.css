@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html  { scroll-behavior: smooth; }
+
+body  {
+  background: #06080b;
+  color: #edf0f5;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-thumb  { background: #252d3d; border-radius: 2px; }
+
+/* Kill Chrome autofill yellow */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #101318 inset !important;
+  -webkit-text-fill-color: #edf0f5 !important;
+  caret-color: #edf0f5;
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(28,34,48,.55) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(28,34,48,.55) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .glow-blue-sm {
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+  }
+}
