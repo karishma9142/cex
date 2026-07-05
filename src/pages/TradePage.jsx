@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import DashboardLayout from '../components/DashboardLayout'
 import { usePolling } from '../lib/usePolling'
 import { getMarket, getOrderbook, getRecentTrades, getTicker } from '../lib/marketsApi'
@@ -150,18 +150,44 @@ function OrderForm({ market, symbol, onPlaced }) {
 
 export default function TradePage() {
   const { symbol: symbolPath } = useParams()
-  const symbol = pathToSymbol(symbolPath ?? '')
+  const navigate = useNavigate()
+  const symbol = symbolPath ? pathToSymbol(symbolPath) : ''
+  const validSymbol = Boolean(symbolPath && symbol)
 
-  const { data: market } = usePolling(() => getMarket(symbol), { intervalMs: 20000, deps: [symbol] })
-  const { data: ticker }    = usePolling(() => getTicker(symbol), { intervalMs: 3000, deps: [symbol] })
-  const { data: book }      = usePolling(() => getOrderbook(symbol), { intervalMs: 2000, deps: [symbol] })
-  const { data: trades }    = usePolling(() => getRecentTrades(symbol, 25), { intervalMs: 3000, deps: [symbol] })
+  // A missing/empty :symbol (e.g. someone visits /trade directly) must not
+  // spin up polling against garbage URLs like GET /api/ticker/ forever.
+  useEffect(() => {
+    if (!validSymbol) {
+      navigate('/markets', { replace: true })
+    } else {
+      localStorage.setItem('lastTradeSymbolPath', symbolPath)
+    }
+  }, [validSymbol, navigate, symbolPath])
+
+  const { data: market } = usePolling(
+    () => validSymbol ? getMarket(symbol) : Promise.resolve(null),
+    { intervalMs: 20000, deps: [symbol, validSymbol] }
+  )
+  const { data: ticker } = usePolling(
+    () => validSymbol ? getTicker(symbol) : Promise.resolve(null),
+    { intervalMs: 3000, deps: [symbol, validSymbol] }
+  )
+  const { data: book } = usePolling(
+    () => validSymbol ? getOrderbook(symbol) : Promise.resolve(null),
+    { intervalMs: 2000, deps: [symbol, validSymbol] }
+  )
+  const { data: trades } = usePolling(
+    () => validSymbol ? getRecentTrades(symbol, 25) : Promise.resolve([]),
+    { intervalMs: 3000, deps: [symbol, validSymbol] }
+  )
   const { data: myOrdersRes, refetch: refetchOrders } = usePolling(
-    () => getMyOrders({ symbol, status: 'open', limit: 20 }),
-    { intervalMs: 4000, deps: [symbol] }
+    () => validSymbol ? getMyOrders({ symbol, status: 'open', limit: 20 }) : Promise.resolve(null),
+    { intervalMs: 4000, deps: [symbol, validSymbol] }
   )
 
   const [cancelling, setCancelling] = useState(null)
+
+  if (!validSymbol) return null
 
   async function handleCancel(orderId) {
     setCancelling(orderId)

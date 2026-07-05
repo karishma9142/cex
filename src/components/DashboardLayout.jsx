@@ -3,10 +3,17 @@ import { useAuth } from '../context/AuthContext'
 
 const NAV = [
   { to: '/markets', label: 'Markets', icon: MarketsIcon },
-  { to: '/trade/BTC-INR', label: 'Trade', icon: TradeIcon, matchPrefix: '/trade' },
+  { to: resolveTradeLink, label: 'Trade', icon: TradeIcon, matchPrefix: '/trade' },
   { to: '/wallet', label: 'Wallet', icon: WalletIcon },
   { to: '/orders', label: 'Orders', icon: OrdersIcon },
 ]
+
+function resolveTradeLink() {
+  const lastPath = localStorage.getItem('lastTradeSymbolPath')
+  const defaultPath = localStorage.getItem('defaultTradeSymbolPath')
+  const path = lastPath || defaultPath
+  return path ? `/trade/${path}` : '/markets'
+}
 
 function MarketsIcon(props) {
   return (
@@ -75,10 +82,12 @@ export default function DashboardLayout({ children, title, actions }) {
         </Link>
 
         <nav className="flex flex-col gap-1 flex-1">
-          {NAV.map(item => (
+          {NAV.map(item => {
+            const to = typeof item.to === 'function' ? item.to() : item.to
+            return (
             <NavLink
               key={item.label}
-              to={item.to}
+              to={to}
               className={({ isActive }) => {
                 const active = item.matchPrefix
                   ? window.location.pathname.startsWith(item.matchPrefix)
@@ -93,7 +102,8 @@ export default function DashboardLayout({ children, title, actions }) {
               <item.icon className="w-4 h-4 shrink-0" />
               {item.label}
             </NavLink>
-          ))}
+            )
+          })}
         </nav>
 
         <div className="border-t border-border pt-4 mt-4">
@@ -136,11 +146,12 @@ export default function DashboardLayout({ children, title, actions }) {
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-bg2/95 backdrop-blur-xl
           border-t border-border flex items-center justify-around h-16">
           {NAV.map(item => {
+            const to = typeof item.to === 'function' ? item.to() : item.to
             const active = item.matchPrefix
               ? window.location.pathname.startsWith(item.matchPrefix)
-              : window.location.pathname === item.to
+              : window.location.pathname === to
             return (
-              <NavLink key={item.label} to={item.to}
+              <NavLink key={item.label} to={to}
                 className={`flex flex-col items-center gap-1 text-[10px] font-mono
                   ${active ? 'text-blue' : 'text-ink3'}`}>
                 <item.icon className="w-5 h-5" />

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import DashboardLayout from '../components/DashboardLayout'
 import { usePolling } from '../lib/usePolling'
@@ -29,6 +30,16 @@ export default function MarketsPage() {
   const { data: tickers } = usePolling(getAllTickers, { intervalMs: 4000 })
 
   const tickerBySymbol = new Map((tickers ?? []).map(t => [t.symbol, t]))
+
+  // As soon as we know what markets exist, cache the first one as a default
+  // so the sidebar's "Trade" shortcut has somewhere real to go before the
+  // user has ever opened a specific market.
+  useEffect(() => {
+    if (markets && markets.length > 0) {
+      const first = markets.find(m => m.status === 'active') ?? markets[0]
+      localStorage.setItem('defaultTradeSymbolPath', symbolToPath(first.symbol))
+    }
+  }, [markets])
 
   return (
     <DashboardLayout title="Markets">

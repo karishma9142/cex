@@ -20,9 +20,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/login"    element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path='/markets' element={<MarketsPage/>}/>
-        <Route path='wallet' element = {<WalletPage/>}/>
-        <Route path='trade/BTC-INR' element = {<TradePage/>}/>
-        <Route path='orders' element = {<OrdersPage/>}/>
+        <Route path='/wallet' element = {<WalletPage/>}/>
+        <Route path='/trade/:symbol' element={<TradePage/>}/>
+        <Route path='/orders' element = {<OrdersPage/>}/>
         {/* <Route path="*"         element={<Navigate to="/login" replace />} /> */}
       </Routes>
     </BrowserRouter>
