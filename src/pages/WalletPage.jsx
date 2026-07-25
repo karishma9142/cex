@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import DashboardLayout from '../components/DashboardLayout'
 import { usePolling } from '../lib/usePolling'
 import { getWallet, deposit, withdraw, getTransactions } from '../lib/walletApi'
+import { getMyKyc } from '../lib/kycApi'
 
 const ASSETS = ['INR', 'BTC', 'ETH', 'SOL']
 
@@ -44,7 +46,7 @@ function AssetCard({ asset, balance }) {
   )
 }
 
-function TransferForm({ mode, onSubmit }) {
+function TransferForm({ mode, onSubmit, disabled, disabledReason }) {
   const [asset, setAsset] = useState('INR')
   const [amount, setAmount] = useState('')
   const [busy, setBusy] = useState(false)
@@ -74,13 +76,20 @@ function TransferForm({ mode, onSubmit }) {
     <form onSubmit={handleSubmit} className="border border-border rounded-2xl bg-bg2 p-5 flex flex-col gap-4">
       <p className="font-display text-sm font-bold text-ink capitalize">{mode}</p>
 
+      {disabled && (
+        <p className="text-xs font-mono text-yellow-400 bg-yellow-400/10 rounded-lg px-3 py-2">
+          {disabledReason}
+        </p>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <label className="text-[11px] font-mono text-ink3 tracking-widest uppercase">Asset</label>
         <select
           value={asset}
           onChange={e => setAsset(e.target.value)}
+          disabled={disabled}
           className="bg-bg3 border border-border rounded-lg px-3 py-2.5 text-sm text-ink outline-none
-            focus:border-blue/40 font-mono"
+            focus:border-blue/40 font-mono disabled:opacity-50"
         >
           {ASSETS.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
@@ -92,8 +101,9 @@ function TransferForm({ mode, onSubmit }) {
           type="number" min="0" step="any" value={amount}
           onChange={e => setAmount(e.target.value)}
           placeholder="0.00"
+          disabled={disabled}
           className="bg-bg3 border border-border rounded-lg px-3 py-2.5 text-sm text-ink outline-none
-            focus:border-blue/40 font-mono placeholder:text-ink3"
+            focus:border-blue/40 font-mono placeholder:text-ink3 disabled:opacity-50"
         />
       </div>
 
@@ -105,7 +115,7 @@ function TransferForm({ mode, onSubmit }) {
 
       <button
         type="submit"
-        disabled={busy}
+        disabled={busy || disabled}
         className={`h-10 rounded-lg text-sm font-semibold transition-all duration-150
           disabled:opacity-50 disabled:cursor-not-allowed
           ${mode === 'deposit'
@@ -120,6 +130,7 @@ function TransferForm({ mode, onSubmit }) {
 
 export default function WalletPage() {
   const { data, loading, error, refetch } = usePolling(getWallet, { intervalMs: 5000 })
+  const { data: kyc } = usePolling(getMyKyc, { intervalMs: 15000 })
   const [page, setPage] = useState(1)
   const { data: txData, refetch: refetchTx } = usePolling(
     () => getTransactions({ page, limit: 10 }),
@@ -127,6 +138,7 @@ export default function WalletPage() {
   )
 
   const balances = reshapeWallet(data?.wallet)
+  const kycApproved = kyc?.kycStatus === 'APPROVED'
 
   async function handleDeposit(asset, amount) {
     const res = await deposit(asset, amount)
@@ -147,7 +159,6 @@ export default function WalletPage() {
         </div>
       )}
 
-      {/* Balances */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loading
           ? ASSETS.map(a => (
@@ -156,13 +167,18 @@ export default function WalletPage() {
           : ASSETS.map(a => <AssetCard key={a} asset={a} balance={balances[a]} />)}
       </div>
 
-      {/* Deposit / withdraw */}
       <div className="grid md:grid-cols-2 gap-4 mb-8">
         <TransferForm mode="deposit" onSubmit={handleDeposit} />
-        <TransferForm mode="withdraw" onSubmit={handleWithdraw} />
+        <TransferForm
+          mode="withdraw"
+          onSubmit={handleWithdraw}
+          disabled={kyc != null && !kycApproved}
+          disabledReason={
+            <>Complete <Link to="/kyc" className="underline">KYC verification</Link> before withdrawing funds.</>
+          }
+        />
       </div>
 
-      {/* Transaction history */}
       <div className="border border-border rounded-2xl bg-bg2 overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
           <p className="font-display text-sm font-bold text-ink">Transaction history</p>

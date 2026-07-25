@@ -6,6 +6,7 @@ const NAV = [
   { to: resolveTradeLink, label: 'Trade', icon: TradeIcon, matchPrefix: '/trade' },
   { to: '/wallet', label: 'Wallet', icon: WalletIcon },
   { to: '/orders', label: 'Orders', icon: OrdersIcon },
+  { to: '/kyc', label: 'KYC', icon: KycIcon },
 ]
 
 function resolveTradeLink() {
@@ -49,6 +50,16 @@ function OrdersIcon(props) {
     </svg>
   )
 }
+function KycIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="2" />
+      <path d="M5.5 16.5c.7-2 2-3 3.5-3s2.8 1 3.5 3" strokeLinecap="round" />
+      <path d="M15 9h4M15 13h4" strokeLinecap="round" />
+    </svg>
+  )
+}
 function LogoutIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" {...props}>
@@ -67,6 +78,10 @@ export default function DashboardLayout({ children, title, actions }) {
     navigate('/login')
   }
 
+  const nav = user?.role === 'ADMIN'
+    ? [...NAV, { to: '/admin/kyc', label: 'Review KYC', icon: KycIcon, matchPrefix: '/admin/kyc' }]
+    : NAV
+
   return (
     <div className="min-h-screen bg-bg flex">
       {/* ── Sidebar ─────────────────────────────────────── */}
@@ -82,7 +97,7 @@ export default function DashboardLayout({ children, title, actions }) {
         </Link>
 
         <nav className="flex flex-col gap-1 flex-1">
-          {NAV.map(item => {
+          {nav.map(item => {
             const to = typeof item.to === 'function' ? item.to() : item.to
             return (
             <NavLink
@@ -144,15 +159,15 @@ export default function DashboardLayout({ children, title, actions }) {
 
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-bg2/95 backdrop-blur-xl
-          border-t border-border flex items-center justify-around h-16">
-          {NAV.map(item => {
+          border-t border-border flex items-center justify-around h-16 overflow-x-auto">
+          {nav.map(item => {
             const to = typeof item.to === 'function' ? item.to() : item.to
             const active = item.matchPrefix
               ? window.location.pathname.startsWith(item.matchPrefix)
               : window.location.pathname === to
             return (
               <NavLink key={item.label} to={to}
-                className={`flex flex-col items-center gap-1 text-[10px] font-mono
+                className={`flex flex-col items-center gap-1 text-[10px] font-mono shrink-0 px-2
                   ${active ? 'text-blue' : 'text-ink3'}`}>
                 <item.icon className="w-5 h-5" />
                 {item.label}

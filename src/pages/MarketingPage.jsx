@@ -50,7 +50,6 @@ export default function MarketsPage() {
       )}
 
       <div className="border border-border rounded-2xl bg-bg2 overflow-hidden">
-        {/* Table header */}
         <div className="hidden sm:grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-5 py-3
           border-b border-border text-[11px] font-mono uppercase tracking-widest text-ink3">
           <span>Market</span>

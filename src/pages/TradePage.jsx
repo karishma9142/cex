@@ -11,7 +11,6 @@ function fmt(n, digits = 2) {
   return Number(n).toLocaleString('en-IN', { maximumFractionDigits: digits })
 }
 
-// ─── Orderbook ladder ───────────────────────────────────────
 function Ladder({ title, rows, side }) {
   const maxQty = Math.max(1, ...rows.map(r => r.qty))
   return (
@@ -36,7 +35,6 @@ function Ladder({ title, rows, side }) {
   )
 }
 
-// ─── Place order form ────────────────────────────────────────
 function OrderForm({ market, symbol, onPlaced }) {
   const [side, setSide]   = useState('buy')
   const [type, setType]   = useState('limit')
@@ -87,7 +85,6 @@ function OrderForm({ market, symbol, onPlaced }) {
 
   return (
     <form onSubmit={handleSubmit} className="border border-border rounded-2xl bg-bg2 p-5 flex flex-col gap-4">
-      {/* Buy / Sell toggle */}
       <div className="grid grid-cols-2 gap-2 p-1 bg-bg3 rounded-xl">
         <button type="button" onClick={() => setSide('buy')}
           className={`h-9 rounded-lg text-sm font-semibold transition-all duration-150
@@ -101,7 +98,6 @@ function OrderForm({ market, symbol, onPlaced }) {
         </button>
       </div>
 
-      {/* Limit / Market toggle */}
       <div className="flex gap-4 text-xs font-mono">
         {['limit', 'market'].map(t => (
           <label key={t} className="flex items-center gap-1.5 cursor-pointer">
@@ -154,8 +150,6 @@ export default function TradePage() {
   const symbol = symbolPath ? pathToSymbol(symbolPath) : ''
   const validSymbol = Boolean(symbolPath && symbol)
 
-  // A missing/empty :symbol (e.g. someone visits /trade directly) must not
-  // spin up polling against garbage URLs like GET /api/ticker/ forever.
   useEffect(() => {
     if (!validSymbol) {
       navigate('/markets', { replace: true })
@@ -195,7 +189,7 @@ export default function TradePage() {
       await cancelOrder(orderId)
       refetchOrders()
     } catch {
-      // surfaced implicitly by the order staying in the list
+      // no-op; order stays visible if cancel failed
     } finally {
       setCancelling(null)
     }
@@ -225,7 +219,6 @@ export default function TradePage() {
       }
     >
       <div className="grid lg:grid-cols-[1fr_320px] gap-5">
-        {/* ── Left column: orderbook + trades ── */}
         <div className="flex flex-col gap-5">
           <div className="border border-border rounded-2xl bg-bg2 p-5">
             <div className="flex gap-6">
@@ -253,7 +246,6 @@ export default function TradePage() {
             </div>
           </div>
 
-          {/* Open orders for this symbol */}
           <div className="border border-border rounded-2xl bg-bg2 overflow-hidden">
             <div className="px-5 py-3 border-b border-border">
               <p className="font-display text-sm font-bold text-ink">Open orders — {symbol}</p>
@@ -286,7 +278,6 @@ export default function TradePage() {
           </div>
         </div>
 
-        {/* ── Right column: order form ── */}
         <div>
           <OrderForm market={market} symbol={symbol} onPlaced={refetchOrders} />
         </div>

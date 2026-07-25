@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-/**
- * Polls an async fetcher on an interval and exposes { data, error, loading, refetch }.
- * Pauses politely if the tab is hidden, resumes on focus.
- */
 export function usePolling(fetcher, { intervalMs = 4000, deps = [] } = {}) {
   const [data, setData]       = useState(null)
   const [error, setError]     = useState(null)

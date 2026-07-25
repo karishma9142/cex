@@ -112,7 +112,6 @@ export default function OrdersPage() {
 
   return (
     <DashboardLayout title="Orders">
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <select value={filters.status} onChange={e => updateFilter('status', e.target.value)}
           className="bg-bg3 border border-border rounded-lg px-3 py-2 text-xs text-ink font-mono outline-none focus:border-blue/40">
